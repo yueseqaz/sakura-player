@@ -24,16 +24,23 @@ jobs:
           swift build --configuration debug --product SakuraPlayer
           swift build --configuration debug --target SakuraPlayerApp
       - name: Run core checks
-        run: ./scripts/test.sh | tee core-checks.log
+        run: |
+          set -o pipefail
+          ./scripts/test.sh | tee core-checks.log
       - name: Upload check log
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: SakuraPlayer-core-checks
           path: core-checks.log
       - name: Package unsigned development app
-        run: ./scripts/package.sh
+        env:
+          SAKURA_BUILD: ${{ github.run_number }}
+        run: |
+          ./scripts/package.sh
+          ditto -c -k --sequesterRsrc --keepParent dist/SakuraPlayer.app dist/SakuraPlayer-unsigned-macos.zip
       - name: Upload development app
         uses: actions/upload-artifact@v4
         with:
-          name: SakuraPlayer-debug
-          path: dist/SakuraPlayer.app
+          name: SakuraPlayer-unsigned-macos
+          path: dist/SakuraPlayer-unsigned-macos.zip
