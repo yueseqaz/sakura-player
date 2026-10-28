@@ -1,0 +1,39 @@
+name: macOS CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.4'
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Validate package manifest
+        run: swift package dump-package >/dev/null
+      - name: Build app
+        run: |
+          swift build --configuration debug --product SakuraPlayer
+          swift build --configuration debug --target SakuraPlayerApp
+      - name: Run core checks
+        run: ./scripts/test.sh | tee core-checks.log
+      - name: Upload check log
+        uses: actions/upload-artifact@v4
+        with:
+          name: SakuraPlayer-core-checks
+          path: core-checks.log
+      - name: Package unsigned development app
+        run: ./scripts/package.sh
+      - name: Upload development app
+        uses: actions/upload-artifact@v4
+        with:
+          name: SakuraPlayer-debug
+          path: dist/SakuraPlayer.app
