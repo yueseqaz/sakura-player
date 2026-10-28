@@ -6,20 +6,25 @@ No broad compatibility claim is made from file extensions alone. The rows below 
 
 | Container | Video | Audio | Result |
 | --- | --- | --- | --- |
-| MP4 | H.264 (320x180, 1 s generated fixture) | AAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
-| MOV | H.264 (320x180, 1 s generated fixture) | AAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
-| MP4 | HEVC (320x180, 1 s generated fixture) | AAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
-| M4V | H.264 (320x180, 1 s generated fixture) | AAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
-| AVI | H.264 (320x180, 1 s generated fixture) | MP3 | Not opened by current AVFoundation adapter; requires libmpv evaluation |
-| MPEG-TS | H.264 (320x180, 1 s generated fixture) | AAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
+| MP4 | H.264 (320x180, 2 s generated fixture) | AAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
+| MOV | H.264 (320x180, 2 s generated fixture) | AAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
+| MP4 | HEVC (320x180, 2 s generated fixture) | AAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
+| M4V | H.264 (320x180, 2 s generated fixture) | AAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
+| AVI | H.264 (320x180, 2 s generated fixture) | MP3 | Not opened by current AVFoundation adapter; requires libmpv evaluation |
+| MPEG-TS | H.264 (320x180, 2 s generated fixture) | AAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
 | MKV | H.264/AAC (generated fixture) | AAC | Not opened by current AVFoundation adapter; requires libmpv evaluation |
 | WebM | VP9/Opus (generated fixture) | Opus | Not opened by current AVFoundation adapter; requires libmpv evaluation |
 | MKV | AV1/AAC (generated fixture) | AAC | Not opened by current AVFoundation adapter; requires libmpv evaluation |
-| M4A | Audio-only AAC (1 s generated fixture) | AAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
-| MP3 | Audio-only MP3 (1 s generated fixture) | MP3 | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
-| M4A | Audio-only ALAC (1 s generated fixture) | ALAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
-| FLAC | Audio-only FLAC (1 s generated fixture) | FLAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
-| OGG | Audio-only Opus (1 s generated fixture) | Opus | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
+| M4A | Audio-only AAC (2 s generated fixture) | AAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
+| MP3 | Audio-only MP3 (2 s generated fixture) | MP3 | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
+| M4A | Audio-only ALAC (2 s generated fixture) | ALAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
+| FLAC | Audio-only FLAC (2 s generated fixture) | FLAC | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
+| OGG | Audio-only Opus (2 s generated fixture) | Opus | Verified on local Apple Silicon host via `AVPlayerEngine` core check |
+| MKV | H.264, two AAC tracks and ASS subtitles (2 s generated fixture) | AAC | Not opened by current AVFoundation adapter; libmpv evaluation probe passes |
 | Other codec combinations | HEVC/VP9/AV1 and alternate audio tracks | Various | Pending target-Mac fixture runs |
 
 Required follow-up samples are listed in `docs/TEST_PLAN.md`. Unsupported or damaged files must surface a readable error and never crash the app.
+
+## Separate libmpv development measurement
+
+On the same host, the explicitly supplied mpv v0.41.0 runtime passed all 15 generated fixtures, including MKV H.264/AAC, AVI H.264/MP3, WebM VP9/Opus, MKV AV1/AAC and the dual-audio/ASS MKV. The probe uses software rendering and null audio. This **does not change the app's AVFoundation results above** and is not a broad compatibility, hardware decoding, HDR or A/V-sync claim. See `ENGINE_EVALUATION.md` for provenance, API/render checks and remaining integration/license gates.

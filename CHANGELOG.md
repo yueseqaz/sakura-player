@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Fixed AVPlayer mute/volume disagreement and preserved volume, mute and speed when replacing or closing media.
+- Guarded asynchronous track loading, canceled/superseded seeks and periodic updates against obsolete media; released observer tokens and the current item on engine teardown.
+- Fixed invalid track selection, stale end-of-file dispatch and canceled-load cleanup; exact seek commits now discard older completions.
+- Fixed disabled external subtitles reappearing and made positive subtitle offsets delay rather than advance cues; restored saved embedded-subtitle Off choices.
+- Split the app's single large source into app, model, canvas, native surface, settings, controls and presentation files.
+- Isolated clock ticks and drag previews in a timeline-only observable model so they no longer invalidate the full player window; added XCTest presentation regressions to the full-Xcode CI runner.
+- Added executed libmpv client/software-render probes, shared generated media fixtures, dual-audio/ASS coverage and a user-run two-hour acceptance guide. The shipping engine remains AVFoundation.
 - Added the user-provided Sakura app icon and reproducible macOS ICNS generation during packaging.
 - Selected an explicit Swift 6-capable Xcode toolchain for GitHub Actions and corrected version-tag handling in release builds.
 - Required media smoke fixtures now fail the test process on playback errors; unsupported-format measurements use an explicit opt-in instead of silently passing required checks.

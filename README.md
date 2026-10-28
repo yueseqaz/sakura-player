@@ -83,6 +83,7 @@ Media stays on the local machine. Playback history is stored in the user's Appli
 - `docs/ENGINE_EVALUATION.md` - playback-engine investigation and measurements
 - `docs/FORMAT_COMPATIBILITY.md` - measured media matrix and remaining compatibility gaps
 - `docs/TEST_PLAN.md` - automated and manual acceptance checks
+- `docs/LONG_PLAYBACK_TEST.zh-CN.md` - user-run two-hour playback checks and report template
 - `docs/RELEASE.md` - signing, packaging and release checklist
 - `CHANGELOG.md` - user-visible changes
 
@@ -91,3 +92,5 @@ GitHub Actions runs the package manifest check, app/core build, deterministic co
 ## License
 
 Sakura Player source code is released under the MIT License. See `LICENSE`. AVFoundation/AVKit are Apple system frameworks and remain subject to Apple's terms.
+
+The optional `scripts/test-mpv.sh` probe uses an explicitly supplied external runtime and official headers for development measurements only. libmpv is not currently bundled or used by the app; a successful probe does not expand the app's advertised format support. See `docs/ENGINE_EVALUATION.md` for results and remaining integration/license gates.

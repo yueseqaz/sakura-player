@@ -10,7 +10,13 @@
 
 ## State flow
 
-`AVPlayerEngine` is the single owner of playback state. It publishes snapshots through Combine. The view model subscribes on the main run loop and passes the snapshot to SwiftUI. A periodic observer updates time at 250 ms intervals and only publishes when the position changes by at least 50 ms, avoiding a full UI redraw for every display tick.
+`AVPlayerEngine` is the single owner of playback state. It publishes changed snapshots through Combine on the main actor. A per-item periodic observer updates time at 250 ms intervals, not on every display tick. Unchanged snapshots are not republished.
+
+The app is now split into `SakuraPlayerApp`, `PlayerViewModel`, `PlayerView`, `PlayerSurface`, `PlaybackControls`, `SettingsView`, `PresentationPreferences` and `PlayerBanners` source files. The engine's main-actor publisher is consumed synchronously rather than queued through another RunLoop hop, preventing an obsolete end event from advancing a newly selected queue item. Clock-only snapshots update `PlaybackTimelineModel` without invalidating the window-level model. Only the timeline slider and time readout observe this clock; seek previews use the same narrow model, while control interaction/status changes still notify the window. The view model retains the latest full state for commands, history and diagnostics. Actual GPU/CPU/SwiftUI rendering performance still requires Instruments measurements.
+
+Periodic observers are installed per loaded item with generation checks and removed on replacement/close. A dedicated token lifetime owner removes periodic and notification observers and releases the current AVPlayer item when the engine deinitializes. Async media-selection loads validate item identity/generation after each suspension; seek completions validate their own generation and item identity. Canceled loads release the current item, while superseded loads cannot tear down the replacement.
+
+Volume, mute and rate survive media-state resets so the published snapshot agrees with the actual AVPlayer. Raising volume explicitly unmutes both. Invalid/non-finite controls and nonexistent track IDs cannot install phantom state. External cue lookup uses an explicit enabled flag and `mediaTime - delay`, so positive offsets mean later subtitles.
 
 Loading a new URL first invalidates the previous item observation and replaces the AVPlayer item. Failed loads become `.failed` with a user-facing message rather than terminating the process. History is an actor-backed, best-effort JSON store so disk writes cannot block playback.
 

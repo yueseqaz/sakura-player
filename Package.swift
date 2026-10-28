@@ -13,6 +13,7 @@ let package = Package(
     targets: [
         .target(name: "SakuraPlayerCore"),
         .executableTarget(name: "SakuraPlayerApp", dependencies: ["SakuraPlayerCore"]),
-        .executableTarget(name: "SakuraPlayerCoreChecks", dependencies: ["SakuraPlayerCore"])
+        .executableTarget(name: "SakuraPlayerCoreChecks", dependencies: ["SakuraPlayerCore"]),
+        .testTarget(name: "SakuraPlayerPresentationTests", dependencies: ["SakuraPlayerApp", "SakuraPlayerCore"])
     ]
 )

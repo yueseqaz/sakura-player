@@ -56,6 +56,12 @@ enum SakuraPlayerCoreChecks {
         guard cues.count == 1, cues[0].start == 1, cues[0].end == 2.5, cues[0].text == "Hello world" else {
             throw CheckFailure.subtitles
         }
+        guard SubtitleCue.active(in: cues, at: 1.25) == cues[0],
+              SubtitleCue.active(in: cues, at: 1.25, delay: 0.5) == nil,
+              SubtitleCue.active(in: cues, at: 2.75, delay: 0.5) == cues[0],
+              SubtitleCue.active(in: cues, at: 0.75, delay: -0.5) == cues[0],
+              SubtitleCue.active(in: cues, at: 1.25, enabled: false) == nil,
+              SubtitleCue.active(in: cues, at: .nan) == nil else { throw CheckFailure.subtitles }
         let webVTT = SubtitleParser.parse(text: "WEBVTT\n\n00:00:03.000 --> 00:00:04.000\nVTT cue\n")
         guard webVTT.count == 1, webVTT[0].text == "VTT cue" else { throw CheckFailure.subtitles }
         let ass = SubtitleParser.parse(text: assText)
@@ -84,12 +90,59 @@ enum SakuraPlayerCoreChecks {
     @MainActor
     private static func verifyEngine(with url: URL) async throws {
         let engine = AVPlayerEngine()
+        engine.setMuted(true)
+        engine.setVolume(0.4)
+        guard !engine.player.isMuted, !engine.state.isMuted else { throw CheckFailure.engine }
+        engine.setMuted(true)
+        engine.setRate(1.5)
         let supersededLoad = Task { try? await engine.load(url: url) }
         await Task.yield()
         try await engine.load(url: url)
         _ = await supersededLoad.value
-        guard engine.state.mediaURL == url, engine.state.duration > 0 else {
+        guard engine.state.mediaURL == url, engine.state.duration > 0,
+              engine.state.volume == 0.4, engine.state.isMuted, engine.state.rate == 1.5,
+              engine.player.isMuted, engine.player.volume == 0.4 else {
             throw CheckFailure.engine
+        }
+        let audioID = engine.state.selectedAudioTrackID
+        let subtitleID = engine.state.selectedSubtitleTrackID
+        engine.selectAudioTrack(id: Int.max)
+        engine.selectSubtitleTrack(id: Int.max)
+        guard engine.state.selectedAudioTrackID == audioID,
+              engine.state.selectedSubtitleTrackID == subtitleID else { throw CheckFailure.engine }
+        engine.setVolume(.nan)
+        engine.setRate(.infinity)
+        guard engine.state.volume == 0.4, engine.state.rate == 1.5 else { throw CheckFailure.engine }
+        let target = engine.state.duration * 0.3
+        engine.seek(to: engine.state.duration * 0.8)
+        engine.seek(to: target)
+        engine.seek(to: .nan)
+        try await Task.sleep(for: .milliseconds(350))
+        guard abs(engine.state.currentTime - target) < 0.3 else { throw CheckFailure.engine }
+        engine.seek(to: engine.state.duration)
+        try await Task.sleep(for: .milliseconds(350))
+        guard engine.state.status == .ended else { throw CheckFailure.engine }
+        engine.play()
+        try await Task.sleep(for: .milliseconds(100))
+        guard engine.state.status == .playing, engine.state.currentTime < engine.state.duration * 0.8 else {
+            throw CheckFailure.engine
+        }
+        engine.seek(to: engine.state.duration * 0.8)
+        engine.close()
+        try await Task.sleep(for: .milliseconds(300))
+        guard engine.state.status == .idle, engine.state.mediaURL == nil,
+              engine.state.currentTime == 0, engine.state.audioTracks.isEmpty,
+              engine.state.subtitleTracks.isEmpty else { throw CheckFailure.engine }
+        engine.seek(to: 50)
+        guard engine.state.currentTime == 0 else { throw CheckFailure.engine }
+
+        let cancelled = Task { try await engine.load(url: url) }
+        cancelled.cancel()
+        do {
+            try await cancelled.value
+            throw CheckFailure.engine
+        } catch is CancellationError {
+            guard engine.player.currentItem == nil else { throw CheckFailure.engine }
         }
         do {
             try await engine.load(url: URL(fileURLWithPath: "/tmp/sakura-player-file-that-does-not-exist.mp4"))
@@ -100,6 +153,18 @@ enum SakuraPlayerCoreChecks {
             }
         }
         engine.close()
+        try await verifyEngineRelease(with: url)
+    }
+
+    @MainActor
+    private static func verifyEngineRelease(with url: URL) async throws {
+        var engine: AVPlayerEngine? = AVPlayerEngine()
+        weak var releasedEngine = engine
+        let player = engine!.player
+        try await engine!.load(url: url)
+        engine = nil
+        try await Task.sleep(for: .milliseconds(100))
+        guard releasedEngine == nil, player.currentItem == nil else { throw CheckFailure.engine }
     }
 
     @MainActor

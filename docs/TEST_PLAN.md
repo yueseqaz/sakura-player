@@ -11,13 +11,15 @@ swift run SakuraPlayerCoreChecks
 
 When `ffmpeg` is available, `scripts/test.sh` also generates one-second H.264/AAC and H.264-without-audio fixtures and loads each through `AVPlayerEngine` via `SAKURA_MEDIA_FIXTURE`. The checks also cover missing-file errors, superseded concurrent loads, the explicit audio-delay capability boundary and SRT/WebVTT parsing. Generated files are temporary and are not committed.
 
+Engine regressions additionally cover mute/volume consistency, playback settings across item changes, non-finite inputs, invalid track IDs, rapid latest-wins seeks, closing with a pending seek, load cancellation and engine deallocation while retaining the AVPlayer to verify item teardown. Subtitle checks cover disabled cues and the positive-delay-means-later convention.
+
 Run `./scripts/format-check.sh` to generate short MP4, MOV, M4V, AVI, MPEG-TS, MKV, WebM, HEVC, AV1 and audio-only AAC/MP3/ALAC/FLAC/Opus fixtures and print the current AVFoundation compatibility results.
 
-Once full Xcode is installed, add XCTest/UI-test targets and run `xcodebuild test` on a macOS destination. The current Command Line Tools installation can build the app but does not provide a working Swift Testing macro plugin, so the deterministic executable checks remain the local fallback.
+Both engine probes use `scripts/generate-format-fixtures.sh` for the approximately two-second matrix and a two-audio-track ASS MKV. `scripts/test-mpv.sh` is an explicit opt-in development probe requiring a supplied runtime and official headers; see `ENGINE_EVALUATION.md`. Unsupported AVFoundation formats remain measured results, but a crashed check process makes the matrix script fail.
 
-The package intentionally uses `SakuraPlayerCoreChecks` instead of a SwiftPM test target for now: this host's Command Line Tools ships the Testing module but not its macro implementation, causing `swift test` to fail before any test body runs.
+`SakuraPlayerPresentationTests` is an XCTest target covering clock-only updates not invalidating the window model, drag previews surviving clock ticks and repeated begin events, clamping, and preview cleanup on close. Run `swift test` with full Xcode. The local Command Line Tools host compiled the updated app but cannot resolve the XCTest module, so XCTest execution is delegated to GitHub's full-Xcode runner. The dependency-free `SakuraPlayerCoreChecks` remains runnable locally; it does not replace the presentation tests or manual UI acceptance.
 
-GitHub Actions additionally validates the package manifest, builds both the executable product and app target, uploads the core-check log, and archives the unsigned development app. There is no UI-test target yet because this repository is currently built with SwiftPM and the local Command Line Tools environment does not provide a stable AppKit UI-test runner; UI acceptance remains an explicit manual gate on a full Xcode Mac.
+GitHub Actions additionally validates the package manifest, builds both the executable product and app target, runs `swift test`, uploads the core/presentation logs, and archives the unsigned development app. Presentation tests use isolated temporary history and UserDefaults suites rather than personal preferences. There is no automated UI-test target yet; native-slider behavior, actual redraw performance and UI acceptance remain explicit manual/Instruments gates on a full Xcode Mac.
 
 ## Media matrix
 
@@ -44,6 +46,6 @@ Prepare legal or self-generated samples for MP4/H.264/AAC 1080p, HEVC 1080p/4K, 
 - Verify the selected playback rate survives a relaunch and applies to newly opened media.
 - Verify `S`, `[`, `]`, `L`, `,` and `.` shortcuts work in both windowed and full-screen playback.
 - Verify `F` enters full screen and `Esc` exits it without changing the saved window frame.
-- Run a two-hour playback and inspect CPU, memory and A/V sync with Instruments.
+- Run a two-hour playback and inspect CPU, memory and A/V sync. **Delegated to the user, not yet verified:** follow [the Chinese step-by-step guide](LONG_PLAYBACK_TEST.zh-CN.md). Activity Monitor is sufficient for initial reporting; Instruments remains the developer follow-up for suspicious trends.
 - Verify history survives relaunch and gracefully ignores moved/deleted files.
 - Verify the resume prompt offers Continue/Start Over and can be disabled in Settings.

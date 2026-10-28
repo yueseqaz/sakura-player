@@ -27,12 +27,18 @@ jobs:
         run: |
           set -o pipefail
           ./scripts/test.sh | tee core-checks.log
+      - name: Run presentation regression tests
+        run: |
+          set -o pipefail
+          swift test | tee presentation-tests.log
       - name: Upload check log
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: SakuraPlayer-core-checks
-          path: core-checks.log
+          path: |
+            core-checks.log
+            presentation-tests.log
       - name: Package unsigned development app
         env:
           SAKURA_BUILD: ${{ github.run_number }}

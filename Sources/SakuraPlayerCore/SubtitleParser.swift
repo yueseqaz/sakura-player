@@ -14,6 +14,13 @@ public struct SubtitleCue: Identifiable, Equatable, Sendable {
     }
 
     public func contains(_ time: TimeInterval) -> Bool { time >= start && time < end }
+
+    /// A positive delay displays the cue later, matching playback-engine semantics.
+    public static func active(in cues: [SubtitleCue], at time: TimeInterval,
+                              delay: TimeInterval = 0, enabled: Bool = true) -> SubtitleCue? {
+        guard enabled, time.isFinite, delay.isFinite else { return nil }
+        return cues.first { $0.contains(time - delay) }
+    }
 }
 
 public enum SubtitleParserError: LocalizedError, Equatable {

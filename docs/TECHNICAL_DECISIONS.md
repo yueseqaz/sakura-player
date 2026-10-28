@@ -1,5 +1,13 @@
 # Technical decisions
 
+## 2026-10-28: Narrow timeline observation and item-scoped callbacks
+
+The window-level model keeps the latest engine snapshot but only announces non-clock changes. A separate timeline model publishes position, duration and drag previews to the slider/readout. A drag commits one exact seek; preview ticks do not invalidate the native surface or reset the slider. Engine item/seek generations and explicit observer ownership prevent old callbacks from mutating replacements or surviving engine teardown. Presentation regressions use isolated preferences/history and run with XCTest on the full-Xcode CI host.
+
+## 2026-10-28: libmpv probe is not a shipping dependency
+
+An explicitly supplied mpv v0.41.0 runtime passed 15 generated fixtures and basic delay, dual-audio and ASS software-render checks. This strengthens the case for a future libmpv adapter but does not complete the native GPU rendering, licensing, standalone build, hardware/HDR or synchronization gates. Keep AVFoundation as the shipping adapter for now; do not bundle another application's runtime. See `ENGINE_EVALUATION.md` for exact provenance and limits.
+
 ## 2026-10-28: Compact dark control rail
 
 Playback controls are rendered as a centered rail capped at 640 points rather than a full-width footer. A dark translucent surface keeps icons readable over both bright and dark video while secondary actions stay inside a single options menu. This keeps the video canvas visually dominant and avoids layout changes when controls appear.
