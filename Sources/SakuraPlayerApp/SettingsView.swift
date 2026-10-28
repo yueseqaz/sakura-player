@@ -135,7 +135,10 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                             .fixedSize()
                     }
-                    .position(x: rateSliderPosition(for: tick) * proxy.size.width, y: 10)
+                    .position(
+                        x: 14 + rateSliderPosition(for: tick) * max(proxy.size.width - 28, 0),
+                        y: 10
+                    )
                     .accessibilityHidden(index != 0)
                 }
             }
