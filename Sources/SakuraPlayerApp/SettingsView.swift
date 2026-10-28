@@ -32,8 +32,19 @@ struct SettingsView: View {
                     HStack {
                         Text("Playback rate")
                         Spacer(minLength: 12)
-                        Text("\(model.state.rate, specifier: "%.3g")×")
-                            .font(.headline.monospacedDigit())
+                        TextField(
+                            "Rate",
+                            value: Binding(
+                                get: { Double(model.state.rate) },
+                                set: { model.setRate(Float($0)) }
+                            ),
+                            formatter: Self.playbackRateFormatter
+                        )
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 72)
+                        .multilineTextAlignment(.trailing)
+                        .help("Enter a value from 0.1 to 32")
+                        Text("×")
                         Text("Current")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -143,6 +154,16 @@ struct SettingsView: View {
         let clamped = min(max(position, 0), 1)
         return PlaybackRateScale.clamp(Float(pow(10, minimum + clamped * (maximum - minimum))))
     }
+
+    private static let playbackRateFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.minimum = NSNumber(value: PlaybackRateScale.minimum)
+        formatter.maximum = NSNumber(value: PlaybackRateScale.maximum)
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 3
+        formatter.allowsFloats = true
+        return formatter
+    }()
 }
 
 /// A full-width rate control whose track and labels share one coordinate system.

@@ -35,6 +35,7 @@ struct PlayerView: View {
                 PlaybackControls(model: model)
                     .opacity(model.controlsVisible ? 1 : 0)
                     .allowsHitTesting(model.controlsVisible)
+                    .onHover { model.setControlsHovering($0) }
                     .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: model.controlsVisible)
             }
             if let cue = model.activeExternalSubtitle {

@@ -63,6 +63,7 @@ final class PlayerViewModel: ObservableObject {
     @Published var seekStep = 5.0 { didSet { savePreferences() } }
     @Published var isDropTargeted = false
     @Published var controlsVisible = true
+    @Published private(set) var controlsHovering = false
     @Published private(set) var isSeeking = false
     private var pendingSeekTime: TimeInterval? {
         get { timeline.position.pendingTime }
@@ -408,14 +409,26 @@ final class PlayerViewModel: ObservableObject {
             pointerIsPressed = false
             scheduleControlsHide()
         default:
-            if hideControlsTask == nil, !pointerIsPressed, !isSeeking { scheduleControlsHide() }
+            if hideControlsTask == nil, !pointerIsPressed, !isSeeking, !controlsHovering { scheduleControlsHide() }
+        }
+    }
+    func setControlsHovering(_ hovering: Bool) {
+        guard controlsHovering != hovering else { return }
+        controlsHovering = hovering
+        if hovering {
+            controlsVisible = true
+            hideControlsTask?.cancel()
+            hideControlsTask = nil
+        } else if state.status == .playing {
+            lastPointerActivityAt = .now
+            scheduleControlsHide()
         }
     }
     private func scheduleControlsHide() {
         let token = UUID()
         pointerActivityToken = token
         hideControlsTask?.cancel()
-        guard autoHideControls else { return }
+        guard autoHideControls, !controlsHovering else { return }
         if lastPointerActivityAt == .distantPast { lastPointerActivityAt = .now }
         hideControlsTask = Task { @MainActor [weak self] in
             guard let self else { return }
@@ -423,7 +436,8 @@ final class PlayerViewModel: ObservableObject {
                   self.pointerActivityToken == token,
                   self.state.status == .playing,
                   !self.pointerIsPressed,
-                  !self.isSeeking {
+                  !self.isSeeking,
+                  !self.controlsHovering {
                 let elapsed = Date().timeIntervalSince(self.lastPointerActivityAt)
                 let remaining = max(0, self.controlsHideDelay - elapsed)
                 if remaining > 0 {
