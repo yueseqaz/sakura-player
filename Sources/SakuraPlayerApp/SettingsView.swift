@@ -48,8 +48,12 @@ struct SettingsView: View {
                                 if !editing { model.rateSliderDraftPosition = nil }
                             }
                         )
+                        .frame(maxWidth: .infinity)
                         rateScale
+                            .frame(maxWidth: .infinity)
                     }
+                    .frame(minWidth: 420, maxWidth: .infinity, alignment: .leading)
+                    .layoutPriority(1)
                     VStack(alignment: .trailing, spacing: 0) {
                         Text("\(model.state.rate, specifier: "%.3g")×")
                             .font(.headline.monospacedDigit())
