@@ -90,6 +90,11 @@ final class PlayerViewModel: ObservableObject {
     private var lastPointerLocation: CGPoint?
     private var lastPointerActivityAt = Date.distantPast
     private var pointerIsPressed = false
+    // NSEvent window coordinates use a bottom-left origin. Keep a generous
+    // bottom band armed while the pointer is approaching the floating rail;
+    // this is more reliable than waiting for SwiftUI hover delivery during a
+    // fade-in animation or a menu transition.
+    private var pointerNearControls = false
     private var loadGeneration = UUID()
     private var preferredRate: Float = PlaybackRateScale.defaultValue
     // Kept outside the published playback snapshot so slider drags do not
@@ -390,6 +395,7 @@ final class PlayerViewModel: ObservableObject {
     func togglePictureInPicture() { pictureInPicture.toggle() }
     func presentDiagnostics() { showDiagnostics = true }
     func notePointerActivity(at location: CGPoint, eventType: NSEvent.EventType) {
+        pointerNearControls = location.y <= 180
         if let lastPointerLocation,
            abs(lastPointerLocation.x - location.x) < 1,
            abs(lastPointerLocation.y - location.y) < 1 {
@@ -409,7 +415,12 @@ final class PlayerViewModel: ObservableObject {
             pointerIsPressed = false
             scheduleControlsHide()
         default:
-            if hideControlsTask == nil, !pointerIsPressed, !isSeeking, !controlsHovering { scheduleControlsHide() }
+            if pointerNearControls || controlsHovering {
+                hideControlsTask?.cancel()
+                hideControlsTask = nil
+            } else if hideControlsTask == nil, !pointerIsPressed, !isSeeking {
+                scheduleControlsHide()
+            }
         }
     }
     func setControlsHovering(_ hovering: Bool) {
@@ -417,9 +428,11 @@ final class PlayerViewModel: ObservableObject {
         controlsHovering = hovering
         if hovering {
             controlsVisible = true
+            pointerNearControls = true
             hideControlsTask?.cancel()
             hideControlsTask = nil
         } else if state.status == .playing {
+            pointerNearControls = false
             lastPointerActivityAt = .now
             scheduleControlsHide()
         }
@@ -428,7 +441,7 @@ final class PlayerViewModel: ObservableObject {
         let token = UUID()
         pointerActivityToken = token
         hideControlsTask?.cancel()
-        guard autoHideControls, !controlsHovering else { return }
+        guard autoHideControls, !controlsHovering, !pointerNearControls else { return }
         if lastPointerActivityAt == .distantPast { lastPointerActivityAt = .now }
         hideControlsTask = Task { @MainActor [weak self] in
             guard let self else { return }
@@ -437,7 +450,8 @@ final class PlayerViewModel: ObservableObject {
                   self.state.status == .playing,
                   !self.pointerIsPressed,
                   !self.isSeeking,
-                  !self.controlsHovering {
+                  !self.controlsHovering,
+                  !self.pointerNearControls {
                 let elapsed = Date().timeIntervalSince(self.lastPointerActivityAt)
                 let remaining = max(0, self.controlsHideDelay - elapsed)
                 if remaining > 0 {
