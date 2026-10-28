@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Fixed AVPlayer mute/volume disagreement and preserved volume, mute and speed when replacing or closing media.
+- Fixed seeking to the end of AAC files resolving to the last audio packet without reaching the Ended state; added a required audio-only regression fixture.
 - Guarded asynchronous track loading, canceled/superseded seeks and periodic updates against obsolete media; released observer tokens and the current item on engine teardown.
 - Fixed invalid track selection, stale end-of-file dispatch and canceled-load cleanup; exact seek commits now discard older completions.
 - Fixed disabled external subtitles reappearing and made positive subtitle offsets delay rather than advance cues; restored saved embedded-subtitle Off choices.

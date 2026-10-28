@@ -60,6 +60,9 @@ public final class AVPlayerEngine: NSObject, PlayerEngine {
             Task { @MainActor [weak self] in
                 guard let self, let itemID, let currentItem = self.player.currentItem,
                       ObjectIdentifier(currentItem) == itemID, !self.isSeeking else { return }
+                let time = currentItem.currentTime().seconds
+                let duration = currentItem.duration.seconds
+                if time.isFinite, duration.isFinite, time < duration - 0.1 { return }
                 self.state.status = .ended
             }
         }
@@ -156,8 +159,11 @@ public final class AVPlayerEngine: NSObject, PlayerEngine {
                 self.isSeeking = false
                 let actual = self.player.currentTime().seconds
                 if actual.isFinite { self.state.currentTime = max(0, actual) }
-                if finished, actual.isFinite, self.state.duration > 0,
-                   actual >= self.state.duration - 0.01 {
+                // Audio seeks can resolve to the last packet before duration.
+                // An explicit end target still represents a completed item.
+                if finished, self.state.duration > 0,
+                   clamped >= self.state.duration || (actual.isFinite && actual >= self.state.duration - 0.01) {
+                    self.state.currentTime = self.state.duration
                     self.state.status = .ended
                 }
             }
@@ -298,7 +304,7 @@ public final class AVPlayerEngine: NSObject, PlayerEngine {
                 guard let self, self.loadGeneration == generation, !self.isSeeking else { return }
                 let seconds = max(0, time.seconds.isFinite ? time.seconds : 0)
                 var next = self.state
-                next.currentTime = seconds
+                next.currentTime = next.status == .ended ? next.duration : seconds
                 if let duration = self.player.currentItem?.duration.seconds, duration.isFinite {
                     next.duration = max(0, duration)
                 }

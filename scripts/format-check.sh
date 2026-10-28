@@ -22,12 +22,13 @@ printf '| Sample | Result |\n| --- | --- |\n'
 result=0
 for sample in "$tmpdir"/*; do
   set +e
-  output="$(SAKURA_ALLOW_UNSUPPORTED_FIXTURE=1 SAKURA_MEDIA_FIXTURE="$sample" swift run --quiet SakuraPlayerCoreChecks 2>/dev/null)"
+  output="$(SAKURA_ALLOW_UNSUPPORTED_FIXTURE=1 SAKURA_MEDIA_FIXTURE="$sample" swift run --quiet SakuraPlayerCoreChecks 2>&1)"
   status=$?
   set -e
   if [ "$status" -ne 0 ]; then
     printf '| `%s` | CHECK PROCESS FAILED (%s) |\n' "$(basename "$sample")" "$status"
     result=1
+    printf '%s\n' "$output" >&2
   elif printf '%s\n' "$output" | grep -q "Media fixture passed"; then
     printf '| `%s` | PASS |\n' "$(basename "$sample")"
   else

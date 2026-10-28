@@ -118,14 +118,18 @@ enum SakuraPlayerCoreChecks {
         engine.seek(to: target)
         engine.seek(to: .nan)
         try await Task.sleep(for: .milliseconds(350))
-        guard abs(engine.state.currentTime - target) < 0.3 else { throw CheckFailure.engine }
+        guard abs(engine.state.currentTime - target) < 0.3 else {
+            throw CheckFailure.engineDetail("Latest seek did not win: expected \(target), actual \(engine.state.currentTime)")
+        }
         engine.seek(to: engine.state.duration)
         try await Task.sleep(for: .milliseconds(350))
-        guard engine.state.status == .ended else { throw CheckFailure.engine }
+        guard engine.state.status == .ended else {
+            throw CheckFailure.engineDetail("Seek to end: \(engine.state.status), time \(engine.state.currentTime), duration \(engine.state.duration)")
+        }
         engine.play()
         try await Task.sleep(for: .milliseconds(100))
         guard engine.state.status == .playing, engine.state.currentTime < engine.state.duration * 0.8 else {
-            throw CheckFailure.engine
+            throw CheckFailure.engineDetail("Replay: \(engine.state.status), time \(engine.state.currentTime), duration \(engine.state.duration)")
         }
         engine.seek(to: engine.state.duration * 0.8)
         engine.close()
@@ -196,5 +200,6 @@ enum SakuraPlayerCoreChecks {
         case subtitles
         case queue
         case engine
+        case engineDetail(String)
     }
 }

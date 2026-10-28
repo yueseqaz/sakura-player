@@ -9,9 +9,9 @@ swift build --target SakuraPlayerCoreChecks
 swift run SakuraPlayerCoreChecks
 ```
 
-When `ffmpeg` is available, `scripts/test.sh` also generates one-second H.264/AAC and H.264-without-audio fixtures and loads each through `AVPlayerEngine` via `SAKURA_MEDIA_FIXTURE`. The checks also cover missing-file errors, superseded concurrent loads, the explicit audio-delay capability boundary and SRT/WebVTT parsing. Generated files are temporary and are not committed.
+When `ffmpeg` is available, `scripts/test.sh` also generates one-second H.264/AAC and H.264-without-audio fixtures plus a two-second audio-only AAC fixture, then loads each through `AVPlayerEngine` via `SAKURA_MEDIA_FIXTURE`. The checks also cover missing-file errors, superseded concurrent loads, the explicit audio-delay capability boundary and SRT/WebVTT parsing. Generated files are temporary and are not committed.
 
-Engine regressions additionally cover mute/volume consistency, playback settings across item changes, non-finite inputs, invalid track IDs, rapid latest-wins seeks, closing with a pending seek, load cancellation and engine deallocation while retaining the AVPlayer to verify item teardown. Subtitle checks cover disabled cues and the positive-delay-means-later convention.
+Engine regressions additionally cover mute/volume consistency, playback settings across item changes, non-finite inputs, invalid track IDs, rapid latest-wins seeks, explicit end targets, replay, closing with a pending seek, load cancellation and engine deallocation while retaining the AVPlayer to verify item teardown. AAC end seeks can land on the final packet slightly before duration, so an explicit completed end target is represented as ended rather than stranded paused. Subtitle checks cover disabled cues and the positive-delay-means-later convention.
 
 Run `./scripts/format-check.sh` to generate short MP4, MOV, M4V, AVI, MPEG-TS, MKV, WebM, HEVC, AV1 and audio-only AAC/MP3/ALAC/FLAC/Opus fixtures and print the current AVFoundation compatibility results.
 
