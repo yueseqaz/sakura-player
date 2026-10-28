@@ -1,4 +1,6 @@
-import AVFoundation
+// Older SDKs lack Sendable annotations for AVMediaSelectionGroup; its use
+// stays confined to this main-actor adapter.
+@preconcurrency import AVFoundation
 import Combine
 import Foundation
 

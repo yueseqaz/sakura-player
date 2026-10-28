@@ -5,6 +5,7 @@
 - Added the user-provided Sakura app icon and reproducible macOS ICNS generation during packaging.
 - Selected an explicit Swift 6-capable Xcode toolchain for GitHub Actions and corrected version-tag handling in release builds.
 - Required media smoke fixtures now fail the test process on playback errors; unsupported-format measurements use an explicit opt-in instead of silently passing required checks.
+- Kept AVFoundation media-selection objects main-actor confined while accommodating older SDK concurrency annotations in CI.
 
 - Added Swift Package Manager project and native SwiftUI macOS player shell.
 - Added AVFoundation-backed `PlayerEngine` abstraction with playback state, seek, volume, mute and rate controls.
