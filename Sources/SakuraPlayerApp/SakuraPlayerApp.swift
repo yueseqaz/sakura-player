@@ -12,7 +12,10 @@ struct SakuraPlayerApp: App {
     @StateObject private var model = PlayerViewModel()
 
     var body: some Scene {
-        WindowGroup("Sakura Player") {
+        // The player is a single-document app. A WindowGroup creates another
+        // untitled player window when Launch Services delivers an open event;
+        // a keyed Window keeps the media surface and model truly singleton.
+        Window("Sakura Player", id: "main") {
             PlayerView(model: model)
                 .frame(minWidth: 720, minHeight: 420)
                 .background(WindowAccessor(restorer: model.windowRestorer))

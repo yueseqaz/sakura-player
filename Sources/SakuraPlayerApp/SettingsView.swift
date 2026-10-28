@@ -34,17 +34,30 @@ struct SettingsView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Slider(
                             value: Binding(
-                                get: { rateSliderPosition(for: model.state.rate) },
-                                set: { model.setRate(rate(for: $0)) }
+                                get: { model.rateSliderDraftPosition ?? rateSliderPosition(for: model.state.rate) },
+                                set: {
+                                    // Keep the thumb local while AVPlayer publishes its
+                                    // state so a drag never jumps back under the pointer.
+                                    model.rateSliderDraftPosition = $0
+                                    model.setRate(rate(for: $0))
+                                }
                             ),
                             in: 0...1,
-                            step: 0.001
+                            step: 0.002,
+                            onEditingChanged: { editing in
+                                if !editing { model.rateSliderDraftPosition = nil }
+                            }
                         )
                         rateScale
                     }
-                    Text("\(model.state.rate, specifier: "%.3g")×")
-                        .monospacedDigit()
-                        .frame(width: 52, alignment: .trailing)
+                    VStack(alignment: .trailing, spacing: 0) {
+                        Text("\(model.state.rate, specifier: "%.3g")×")
+                            .font(.headline.monospacedDigit())
+                        Text("Current")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(width: 64, alignment: .trailing)
                 }
             }
             Section("Subtitles") {
@@ -118,8 +131,9 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 420)
+        .frame(width: 520)
         .padding()
+        .onDisappear { model.rateSliderDraftPosition = nil }
     }
 
     private var rateScale: some View {
@@ -137,13 +151,13 @@ struct SettingsView: View {
                     }
                     .position(
                         x: 14 + rateSliderPosition(for: tick) * max(proxy.size.width - 28, 0),
-                        y: 10
+                        y: index.isMultiple(of: 2) ? 10 : 21
                     )
                     .accessibilityHidden(index != 0)
                 }
             }
         }
-        .frame(height: 23)
+        .frame(height: 36)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Playback rate scale from 0.1 to 32 times")
     }

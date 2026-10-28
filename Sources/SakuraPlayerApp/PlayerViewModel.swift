@@ -91,6 +91,9 @@ final class PlayerViewModel: ObservableObject {
     private var pointerIsPressed = false
     private var loadGeneration = UUID()
     private var preferredRate: Float = PlaybackRateScale.defaultValue
+    // Kept outside the published playback snapshot so slider drags do not
+    // cause the entire player surface to refresh on every pointer tick.
+    var rateSliderDraftPosition: Double?
     private var isLoadingPreferences = true
 
     init(defaults: UserDefaults = .standard, history: PlaybackHistoryStore = PlaybackHistoryStore()) {
