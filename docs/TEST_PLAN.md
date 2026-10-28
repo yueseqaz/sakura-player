@@ -34,6 +34,7 @@ Prepare legal or self-generated samples for MP4/H.264/AAC 1080p, HEVC 1080p/4K, 
 - Verify the Queue menu can select, remove and clear queued items.
 - Verify the selected playback order is applied immediately after relaunching the app.
 - Verify volume, mute, playback-rate changes, end-of-file state, embedded audio/subtitle track selection and error recovery.
+- Verify playback-rate slider marks at 0.1x, 0.25x, 0.5x, 1x, 1.5x, 2x, 4x, 8x, 16x and 32x; confirm 0.1x and 32x are clamped boundaries.
 - Relaunch a file after changing its embedded track and verify the selection is restored.
 - Verify subtitle discovery, window/full-screen behavior, multi-display changes, sleep/wake and audio-device changes.
 - Verify fit/fill display modes and 90°/180°/270° rotation on portrait and landscape media.
@@ -44,6 +45,7 @@ Prepare legal or self-generated samples for MP4/H.264/AAC 1080p, HEVC 1080p/4K, 
 - Open `Window > Diagnostics…`, copy the report, and verify it contains no absolute media path.
 - Verify the configurable arrow-key seek step changes keyboard seek behavior.
 - Verify the selected playback rate survives a relaunch and applies to newly opened media.
+- Verify the selected playback rate survives a relaunch and media switch, and that the comma/period shortcuts stop at 0.1x and 32x.
 - Verify `S`, `[`, `]`, `L`, `,` and `.` shortcuts work in both windowed and full-screen playback.
 - Verify `F` enters full screen and `Esc` exits it without changing the saved window frame.
 - Run a two-hour playback and inspect CPU, memory and A/V sync. **Delegated to the user, not yet verified:** follow [the Chinese step-by-step guide](LONG_PLAYBACK_TEST.zh-CN.md). Activity Monitor is sufficient for initial reporting; Instruments remains the developer follow-up for suspicious trends.

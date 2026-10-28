@@ -47,8 +47,8 @@ Packaging converts the user-provided `Assets/AppIcon.png` into the native multi-
 - `File > Open Recent` shows locally stored playback history; `Clear Recent` removes it
 - Launching the app with one or more readable file paths opens them as a queue
 - When a saved position exists, the player offers `Continue` or `Start Over` (configurable in Settings)
-- Playback speed menu: 0.5x to 2x
-- Settings exposes a custom playback-rate slider from 0.25x to 4x
+- Playback speed menu: 0.1x to 32x on a shared set of readable rate marks
+- Settings exposes a logarithmic playback-rate scale from 0.1x to 32x, so slow motion and fast-forward remain equally usable
 - The selected playback rate is restored for the next media file and launch
 - The Subtitles menu can load SRT/WebVTT/ASS/SSA files, turn subtitles off, and apply a quick external-subtitle timing offset
 - Settings also provide a precise -10s to +10s subtitle-delay slider and reset action

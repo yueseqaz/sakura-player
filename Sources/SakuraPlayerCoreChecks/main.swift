@@ -95,6 +95,11 @@ enum SakuraPlayerCoreChecks {
         guard !engine.player.isMuted, !engine.state.isMuted else { throw CheckFailure.engine }
         engine.setMuted(true)
         engine.setRate(1.5)
+        engine.setRate(0.05)
+        guard engine.state.rate == PlaybackRateScale.minimum else { throw CheckFailure.engine }
+        engine.setRate(40)
+        guard engine.state.rate == PlaybackRateScale.maximum else { throw CheckFailure.engine }
+        engine.setRate(1.5)
         let supersededLoad = Task { try? await engine.load(url: url) }
         await Task.yield()
         try await engine.load(url: url)

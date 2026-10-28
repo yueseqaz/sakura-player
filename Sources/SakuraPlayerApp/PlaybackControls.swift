@@ -133,7 +133,7 @@ struct PlaybackControls: View {
     @ViewBuilder
     private var playbackMenu: some View {
         Menu("Playback speed") {
-            ForEach([0.5, 1.0, 1.25, 1.5, 2.0], id: \.self) { rate in
+            ForEach(PlaybackRateScale.ticks, id: \.self) { rate in
                 Button {
                     model.setRate(Float(rate))
                 } label: {

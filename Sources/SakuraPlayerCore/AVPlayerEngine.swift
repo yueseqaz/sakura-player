@@ -185,7 +185,7 @@ public final class AVPlayerEngine: NSObject, PlayerEngine {
 
     public func setRate(_ rate: Float) {
         guard rate.isFinite else { return }
-        let clamped = min(max(0.25, rate), 4)
+        let clamped = PlaybackRateScale.clamp(rate)
         state.rate = clamped
         if state.status == .playing { player.rate = clamped }
     }

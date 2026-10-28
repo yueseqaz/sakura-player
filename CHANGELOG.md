@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Expanded playback speed controls to a persisted 0.1x-32x range. Settings now uses a logarithmic, tick-marked slider and the speed menu/keyboard shortcuts share the same scale.
+
 - Fixed AVPlayer mute/volume disagreement and preserved volume, mute and speed when replacing or closing media.
 - Fixed seeking to the end of AAC files resolving to the last audio packet without reaching the Ended state; added a required audio-only regression fixture.
 - Guarded asynchronous track loading, canceled/superseded seeks and periodic updates against obsolete media; released observer tokens and the current item on engine teardown.

@@ -90,7 +90,7 @@ final class PlayerViewModel: ObservableObject {
     private var lastPointerActivityAt = Date.distantPast
     private var pointerIsPressed = false
     private var loadGeneration = UUID()
-    private var preferredRate: Float = 1
+    private var preferredRate: Float = PlaybackRateScale.defaultValue
     private var isLoadingPreferences = true
 
     init(defaults: UserDefaults = .standard, history: PlaybackHistoryStore = PlaybackHistoryStore()) {
@@ -129,7 +129,7 @@ final class PlayerViewModel: ObservableObject {
             subtitleDelay = min(max(defaults.double(forKey: "subtitleDelay"), -10), 10)
         }
         if defaults.object(forKey: "preferredRate") != nil {
-            preferredRate = min(max(defaults.float(forKey: "preferredRate"), 0.25), 4)
+            preferredRate = PlaybackRateScale.clamp(defaults.float(forKey: "preferredRate"))
         }
         queue.order = playbackOrder
         Task { recentEntries = await history.allEntries() }
@@ -366,9 +366,21 @@ final class PlayerViewModel: ObservableObject {
     func setVolume(_ value: Double) { engine.setVolume(Float(value)) }
     func toggleMute() { engine.setMuted(!state.isMuted) }
     func setRate(_ rate: Float) {
-        preferredRate = min(max(rate, 0.25), 4)
+        preferredRate = PlaybackRateScale.clamp(rate)
         defaults.set(preferredRate, forKey: "preferredRate")
         engine.setRate(preferredRate)
+    }
+    func adjustRate(direction: Int) {
+        guard direction != 0 else { return }
+        let ticks = PlaybackRateScale.ticks
+        let current = PlaybackRateScale.clamp(state.rate)
+        let index: Int
+        if direction < 0 {
+            index = ticks.lastIndex(where: { $0 < current - 0.0001 }) ?? 0
+        } else {
+            index = ticks.firstIndex(where: { $0 > current + 0.0001 }) ?? (ticks.count - 1)
+        }
+        setRate(ticks[index])
     }
     func toggleFullScreen() { NSApp.keyWindow?.toggleFullScreen(nil) }
     func togglePictureInPicture() { pictureInPicture.toggle() }

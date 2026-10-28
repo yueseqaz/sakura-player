@@ -30,10 +30,21 @@ struct SettingsView: View {
                 }
                 HStack {
                     Text("Playback rate")
-                    Slider(value: Binding(get: { Double(model.state.rate) }, set: { model.setRate(Float($0)) }), in: 0.25...4, step: 0.05)
-                    Text("\(model.state.rate, specifier: "%.2g")×")
+                        .frame(width: 112, alignment: .leading)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Slider(
+                            value: Binding(
+                                get: { rateSliderPosition(for: model.state.rate) },
+                                set: { model.setRate(rate(for: $0)) }
+                            ),
+                            in: 0...1,
+                            step: 0.001
+                        )
+                        rateScale
+                    }
+                    Text("\(model.state.rate, specifier: "%.3g")×")
                         .monospacedDigit()
-                        .frame(width: 42, alignment: .trailing)
+                        .frame(width: 52, alignment: .trailing)
                 }
             }
             Section("Subtitles") {
@@ -109,5 +120,42 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .frame(width: 420)
         .padding()
+    }
+
+    private var rateScale: some View {
+        GeometryReader { proxy in
+            ZStack(alignment: .topLeading) {
+                ForEach(Array(PlaybackRateScale.ticks.enumerated()), id: \.offset) { index, tick in
+                    VStack(spacing: 1) {
+                        Rectangle()
+                            .fill(Color.secondary.opacity(0.65))
+                            .frame(width: 1, height: 4)
+                        Text("\(tick, specifier: "%.3g")×")
+                            .font(.system(size: 9))
+                            .foregroundStyle(.secondary)
+                            .fixedSize()
+                    }
+                    .position(x: rateSliderPosition(for: tick) * proxy.size.width, y: 10)
+                    .accessibilityHidden(index != 0)
+                }
+            }
+        }
+        .frame(height: 23)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Playback rate scale from 0.1 to 32 times")
+    }
+
+    private func rateSliderPosition(for rate: Float) -> Double {
+        let minimum = log10(Double(PlaybackRateScale.minimum))
+        let maximum = log10(Double(PlaybackRateScale.maximum))
+        let value = log10(Double(PlaybackRateScale.clamp(rate)))
+        return min(max((value - minimum) / (maximum - minimum), 0), 1)
+    }
+
+    private func rate(for position: Double) -> Float {
+        let minimum = log10(Double(PlaybackRateScale.minimum))
+        let maximum = log10(Double(PlaybackRateScale.maximum))
+        let clamped = min(max(position, 0), 1)
+        return PlaybackRateScale.clamp(Float(pow(10, minimum + clamped * (maximum - minimum))))
     }
 }

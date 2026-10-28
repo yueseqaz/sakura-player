@@ -62,9 +62,9 @@ struct SakuraPlayerApp: App {
                     .keyboardShortcut("]", modifiers: [])
                 Button("Cycle Playback Order") { model.cyclePlaybackOrder() }
                     .keyboardShortcut("l", modifiers: [])
-                Button("Slower Playback") { model.setRate(model.state.rate - 0.25) }
+                Button("Slower Playback") { model.adjustRate(direction: -1) }
                     .keyboardShortcut(",", modifiers: [])
-                Button("Faster Playback") { model.setRate(model.state.rate + 0.25) }
+                Button("Faster Playback") { model.adjustRate(direction: 1) }
                     .keyboardShortcut(".", modifiers: [])
                 Button("Toggle Full Screen") { model.toggleFullScreen() }
                     .keyboardShortcut("f", modifiers: [])

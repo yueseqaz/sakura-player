@@ -1,5 +1,18 @@
 import Foundation
 
+/// Shared playback-rate limits used by the engine, preferences and controls.
+public enum PlaybackRateScale {
+    public static let minimum: Float = 0.1
+    public static let maximum: Float = 32
+    public static let defaultValue: Float = 1
+    public static let ticks: [Float] = [0.1, 0.25, 0.5, 1, 1.5, 2, 4, 8, 16, 32]
+
+    public static func clamp(_ value: Float) -> Float {
+        guard value.isFinite else { return defaultValue }
+        return min(max(value, minimum), maximum)
+    }
+}
+
 public enum PlaybackStatus: String, Codable, Equatable, Sendable {
     case idle
     case loading
