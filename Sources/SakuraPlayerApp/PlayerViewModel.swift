@@ -394,8 +394,20 @@ final class PlayerViewModel: ObservableObject {
     func toggleFullScreen() { NSApp.keyWindow?.toggleFullScreen(nil) }
     func togglePictureInPicture() { pictureInPicture.toggle() }
     func presentDiagnostics() { showDiagnostics = true }
-    func notePointerActivity(at location: CGPoint, eventType: NSEvent.EventType) {
-        pointerNearControls = location.y <= 180
+    func notePointerActivity(
+        at location: CGPoint,
+        windowHeight: CGFloat = 0,
+        isAuxiliaryWindow: Bool = false,
+        eventType: NSEvent.EventType
+    ) {
+        // AppKit and SwiftUI can report opposite vertical origins for a local
+        // event depending on the hosting view. Accept either form so the
+        // bottom rail remains armed while the pointer is over or approaching it.
+        // Menus and open panels are hosted in auxiliary windows; keep the rail
+        // armed while the user is moving through one of those controls.
+        pointerNearControls = isAuxiliaryWindow
+            || location.y <= 220
+            || (windowHeight > 0 && location.y >= windowHeight - 220)
         if let lastPointerLocation,
            abs(lastPointerLocation.x - location.x) < 1,
            abs(lastPointerLocation.y - location.y) < 1 {
@@ -432,7 +444,6 @@ final class PlayerViewModel: ObservableObject {
             hideControlsTask?.cancel()
             hideControlsTask = nil
         } else if state.status == .playing {
-            pointerNearControls = false
             lastPointerActivityAt = .now
             scheduleControlsHide()
         }

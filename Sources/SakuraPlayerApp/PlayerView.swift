@@ -74,7 +74,13 @@ struct PlayerView: View {
         .overlay { if model.isDropTargeted { RoundedRectangle(cornerRadius: 12).stroke(.pink, lineWidth: 3).padding(8) } }
         .overlay {
             PointerActivityMonitor { event in
-                model.notePointerActivity(at: event.locationInWindow, eventType: event.type)
+                let windowHeight = event.window?.contentView?.bounds.height ?? 0
+                model.notePointerActivity(
+                    at: event.locationInWindow,
+                    windowHeight: windowHeight,
+                    isAuxiliaryWindow: event.window.map { !$0.isMainWindow } ?? true,
+                    eventType: event.type
+                )
             }
             .allowsHitTesting(false)
         }
